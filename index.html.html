@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Beleza Stone" />
+<title>Cotizador — Beleza Stone</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#0C447C;
+  --amber-mid:#EF9F27;--teal:#0F6E56;
+  --bg:#ECECEC;--card:#E4E4E4;--input:#DCDCDC;--border:#C8C8C8;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px;background:var(--bg);color:#1a1a1a;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding:12px 12px 60px}
+
+/* HEADER */
+.header{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.header h1{font-size:20px;font-weight:600;color:#1a1a1a;margin-bottom:2px}
+.header p{font-size:12px;color:#888}
+.header-badge{background:var(--amber-mid);color:#412402;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;white-space:nowrap}
+
+/* SECTIONS */
+.section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.sec-head{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.sec-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sec-icon.blue{background:#D4E6F8;color:var(--blue-dark)}
+.sec-icon.amber{background:#F5E6C8;color:#633806}
+.sec-icon.teal{background:#C8E8DF;color:var(--teal)}
+.sec-title{font-size:14px;font-weight:600}
+
+/* FORM */
+.client-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.client-grid{grid-template-columns:1fr}}
+.field label{display:block;font-size:11px;color:#666;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.field input{width:100%;padding:9px 11px;font-size:14px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:#1a1a1a}
+.field input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px #C8DCF0}
+
+/* PRICE CONTROLS */
+.price-controls{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-left:auto}
+.ctrl-group{display:flex;flex-direction:column;gap:4px}
+.ctrl-group label{font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.04em}
+.ctrl-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.ctrl-row input[type=number]{width:74px;padding:8px 9px;font-size:14px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:#1a1a1a;text-align:center}
+.ctrl-row input[type=number]:focus{outline:none;border-color:var(--blue)}
+.ctrl-unit{font-size:13px;color:#666;font-weight:600}
+.toggle-sign{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.toggle-sign button{padding:8px 11px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:var(--input);color:#666;transition:all .15s}
+.toggle-sign button.a-desc{background:#C8E8DF;color:#085041}
+.toggle-sign button.a-aum{background:#F5E6C8;color:#633806}
+.presets{display:flex;gap:6px;flex-wrap:wrap}
+.preset{padding:7px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:#555;background:var(--input);transition:all .15s;white-space:nowrap}
+.preset:hover{background:#D4D4D4}
+.preset.active{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:600}
+.adj-pill{display:inline-flex;align-items:center;font-size:12px;padding:4px 10px;border-radius:20px;font-weight:600}
+.adj-pill.desc{background:#C8E8DF;color:#085041}
+.adj-pill.aum{background:#F5E6C8;color:#633806}
+
+/* VIEW TABS */
+.view-tabs{display:flex;gap:6px;margin-bottom:12px}
+.vtab{padding:8px 14px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:#555;background:var(--input);display:flex;align-items:center;gap:5px;transition:all .15s}
+.vtab.active{background:#D4E6F8;color:var(--blue-dark);border-color:#B5CCE0;font-weight:600}
+
+/* SEARCH */
+.search-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.search-bar input,.search-bar select{padding:10px 12px;font-size:14px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:#1a1a1a}
+.search-bar input{flex:1;min-width:140px}
+.search-bar select{max-width:190px;width:100%}
+@media(max-width:440px){.search-bar select{max-width:100%}}
+
+/* PRODUCT GRID */
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-height:380px;overflow-y:auto}
+@media(max-width:400px){.prod-grid{grid-template-columns:repeat(2,1fr)}}
+.prod-card{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--input);cursor:pointer;transition:border-color .15s,transform .1s;-webkit-tap-highlight-color:transparent}
+.prod-card:hover,.prod-card:active{border-color:#999;transform:translateY(-1px)}
+.prod-card.sel{border:2.5px solid var(--blue);background:#D4E6F8}
+.prod-thumb{width:100%;height:76px;background:#D4E6F8;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.prod-thumb img{width:100%;height:100%;object-fit:cover}
+.t-label{font-size:11px;color:var(--blue-dark);text-align:center;padding:4px;line-height:1.3}
+.sel-dot{position:absolute;top:5px;right:5px;width:20px;height:20px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.sel-dot svg{width:11px;height:11px;stroke:#fff;fill:none;stroke-width:3}
+.up-btn{position:absolute;bottom:4px;right:4px;background:rgba(12,68,124,.8);border:none;border-radius:10px;color:#fff;font-size:10px;padding:3px 8px;cursor:pointer;line-height:1.5}
+.img-ok{position:absolute;bottom:4px;left:4px;background:rgba(15,110,86,.85);color:#fff;font-size:9px;padding:2px 6px;border-radius:6px}
+.prod-body{padding:9px}
+.prod-name{font-size:11px;font-weight:600;line-height:1.3;margin-bottom:3px}
+.prod-code{font-size:10px;color:#888;margin-bottom:4px}
+.prod-price{font-size:12px;font-weight:600;color:var(--blue)}
+.prod-caja{font-size:10px;color:#666;margin-top:3px}
+.prod-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:6px;margin-top:3px;font-weight:500}
+.t-bri{background:#C8D8F0;color:#0C447C}
+.t-mat{background:#C8E8DF;color:#085041}
+.t-hig{background:#F5E6C8;color:#633806}
+.t-gra{background:#D8D8D4;color:#444}
+.t-mad{background:#F0D8E0;color:#72243E}
+
+/* LIST VIEW */
+.list-view{max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;overflow-x:auto;background:var(--input)}
+.lcat{padding:9px 14px;background:#D4D4D4;font-size:12px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1}
+.lrow{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;min-width:500px;-webkit-tap-highlight-color:transparent}
+.lrow:last-child{border-bottom:none}
+.lrow:hover,.lrow:active{background:#D8D8D8}
+.lrow.sel{background:#D4E6F8}
+.l-thumb{width:42px;height:42px;border-radius:7px;background:#D4E6F8;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.l-thumb img{width:100%;height:100%;object-fit:cover}
+.l-thumb-lbl{font-size:9px;color:var(--blue-dark);text-align:center;line-height:1.2;padding:2px}
+.l-chk{width:20px;height:20px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.l-chk svg{width:11px;height:11px;stroke:#fff;fill:none;stroke-width:3}
+.l-info{flex:1;min-width:0}
+.l-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.l-meta{font-size:11px;color:#888;margin-top:1px}
+.l-prices{text-align:right;flex-shrink:0}
+.l-price{font-size:13px;font-weight:600;color:var(--blue)}
+.l-adj{font-size:12px;font-weight:600;margin-top:1px}
+.l-caja{font-size:11px;color:#BA7517;margin-top:2px}
+.l-upbtn{background:var(--card);border:1px solid var(--border);border-radius:6px;font-size:10px;padding:4px 8px;cursor:pointer;color:#555;flex-shrink:0}
+
+/* EMPTY */
+.empty{text-align:center;padding:2.5rem 1rem;color:#999;font-size:14px;border:1px dashed var(--border);border-radius:10px;background:var(--input)}
+
+/* QUOTE TABLE */
+.q-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.qt{width:100%;border-collapse:collapse;font-size:13px;min-width:620px}
+table.qt th{font-size:11px;font-weight:600;color:#666;padding:7px 9px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.04em;background:#D4D4D4;white-space:nowrap}
+table.qt td{padding:10px 9px;border-bottom:1px solid var(--border);vertical-align:middle;background:var(--input)}
+table.qt tr:last-child td{border-bottom:none}
+table.qt tr:hover td{background:#D8D8D8}
+table.qt input[type=number]{width:72px;padding:6px 8px;font-size:13px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:#1a1a1a;text-align:center}
+table.qt input[type=number]:focus{outline:none;border-color:var(--blue)}
+.rm{background:none;border:none;width:28px;height:28px;border-radius:6px;cursor:pointer;color:#aaa;font-size:17px;display:flex;align-items:center;justify-content:center;line-height:1}
+.rm:hover{background:#F0C8C8;color:#A32D2D}
+.p-green{color:var(--teal);font-weight:600}
+.p-amber{color:#BA7517;font-weight:600}
+.p-caja{color:#BA7517;font-weight:600}
+
+/* TOTALS */
+.totals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+@media(max-width:420px){.totals{grid-template-columns:1fr}}
+.metric{border-radius:10px;padding:13px 15px}
+.metric.n{background:var(--input);border:1px solid var(--border)}
+.metric.h{background:var(--blue)}
+.metric-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;opacity:.7}
+.metric-val{font-size:20px;font-weight:700}
+.metric.h .metric-lbl{color:#B5D4F4}
+.metric.h .metric-val{color:#fff}
+
+/* ACTIONS */
+.actions{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+.btn-pdf{flex:1;padding:12px 18px;background:var(--blue);color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:7px;min-width:170px;-webkit-tap-highlight-color:transparent}
+.btn-pdf:active{background:var(--blue-dark)}
+.btn-clr{padding:12px 16px;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:14px;font-weight:500;background:var(--input);color:#555}
+.btn-clr:active{background:#D4D4D4}
+
+.count-pill{background:var(--blue);color:#fff;font-size:11px;border-radius:10px;padding:2px 8px;margin-left:6px;font-weight:700}
+.note{background:#D4E6F8;color:var(--blue-dark);font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+
+/* LOGO UPLOAD */
+.logo-zone{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.logo-preview{width:80px;height:48px;border-radius:8px;object-fit:contain;background:#f0f0f0;border:1px solid var(--border);padding:4px}
+.logo-placeholder{width:80px;height:48px;border-radius:8px;background:#f0f0f0;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0}
+.logo-placeholder:hover{background:#e4e4e4;border-color:#aaa}
+.logo-placeholder svg{opacity:.4}
+.logo-btns{display:flex;flex-direction:column;gap:5px}
+.btn-logo{background:var(--input);border:1px solid var(--border);color:#444;font-size:11px;font-weight:600;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;line-height:1.4;transition:all .15s}
+.btn-logo:hover{background:#d4d4d4}
+.btn-logo.remove{background:#fde8e8;border-color:#f5b8b8;color:#a32d2d}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <h1>Beleza Stone</h1>
+    <p>Cotizador de porcelanatos · Lista 2026</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div class="logo-zone" id="logoZone"><!-- filled by JS --></div>
+    <div class="header-badge">Lista de Precios 2026</div>
+  </div>
+</div>
+
+<!-- DATOS -->
+<div class="section">
+  <div class="sec-head">
+    <div class="sec-icon blue">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <span class="sec-title">Datos de la cotización</span>
+  </div>
+  <div class="client-grid">
+    <div class="field"><label>Cliente</label><input type="text" id="clientName" placeholder="Nombre del cliente" /></div>
+    <div class="field"><label>Proyecto / Obra</label><input type="text" id="clientProject" placeholder="Nombre del proyecto" /></div>
+    <div class="field"><label>Vendedor</label><input type="text" id="vendedor" placeholder="Nombre del vendedor" /></div>
+    <div class="field"><label>Fecha</label><input type="date" id="quoteDate" /></div>
+  </div>
+</div>
+
+<!-- CATALOGO -->
+<div class="section">
+  <div class="sec-head">
+    <div class="sec-icon amber">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+    </div>
+    <span class="sec-title">Catálogo de productos</span>
+  </div>
+  <div class="note">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Precios sin IVA. Las fotos se guardan en este dispositivo.
+  </div>
+  <div class="view-tabs">
+    <button class="vtab active" id="tab-grid" onclick="setView('grid')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Tarjetas
+    </button>
+    <button class="vtab" id="tab-list" onclick="setView('list')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Lista
+    </button>
+  </div>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Buscar nombre o código..." oninput="renderCatalog()" />
+    <select id="catFilter" onchange="renderCatalog()">
+      <option value="">Todas las categorías</option>
+      <option value="MADERA MATE 19 X 120">Madera Mate 19×120</option>
+      <option value="BRILLADO 60 X 120">Brillado 60×120</option>
+      <option value="BRILLADO 60 X 60">Brillado 60×60</option>
+      <option value="MATE 30 X 60">Mate 30×60</option>
+      <option value="MATE 60 X 60">Mate 60×60</option>
+      <option value="MATE 60 X 120">Mate 60×120</option>
+      <option value="HIGH GLOSS 60 X 120">High Gloss 60×120</option>
+      <option value="HIGH GLOSS 60 X 60">High Gloss 60×60</option>
+      <option value="GRANILLADO 60 X 120">Granillado 60×120</option>
+    </select>
+  </div>
+  <div id="catalogContainer"></div>
+</div>
+
+<!-- COTIZACION -->
+<div class="section">
+  <div class="sec-head" style="gap:10px;row-gap:14px;">
+    <div class="sec-icon teal">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    </div>
+    <span class="sec-title">Cotización <span class="count-pill" id="itemCount">0</span></span>
+    <div class="price-controls">
+      <div class="ctrl-group">
+        <label>Rápidos</label>
+        <div class="presets">
+          <button class="preset" onclick="applyPreset(15,'desc',this)">-15%</button>
+          <button class="preset" onclick="applyPreset(18,'desc',this)">-18%</button>
+          <button class="preset" onclick="applyPreset(20,'desc',this)">-20%</button>
+        </div>
+      </div>
+      <div class="ctrl-group">
+        <label>% manual</label>
+        <div class="ctrl-row">
+          <div class="toggle-sign">
+            <button id="btn-desc" class="a-desc" onclick="setSign('desc')">▼ desc.</button>
+            <button id="btn-aum" onclick="setSign('aum')">▲ aum.</button>
+          </div>
+          <input type="number" id="pctInput" min="0" max="200" step="0.5" value="0" oninput="applyManual()" />
+          <span class="ctrl-unit">%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <span style="font-size:13px;color:#666">Ajuste activo:</span>
+    <span id="adjBadge" class="adj-pill desc">Sin ajuste (precio base)</span>
+  </div>
+  <div id="quoteTableWrap"><div class="empty">Selecciona productos del catálogo para comenzar</div></div>
+  <div class="totals" id="totalsGrid" style="display:none">
+    <div class="metric n"><div class="metric-lbl">Subtotal sin IVA</div><div class="metric-val" id="totalNoIva">$0</div></div>
+    <div class="metric n"><div class="metric-lbl">IVA 16%</div><div class="metric-val" id="totalIva">$0</div></div>
+    <div class="metric h"><div class="metric-lbl">Total con IVA</div><div class="metric-val" id="totalConIva">$0</div></div>
+  </div>
+  <div class="actions">
+    <button class="btn-pdf" onclick="generatePDF()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      Generar cotización PDF
+    </button>
+    <button class="btn-clr" onclick="clearQuote()">Limpiar</button>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+const EMPRESA='Beleza Stone';
+const PRODUCTS=[
+  {cat:"MADERA MATE 19 X 120",code:"TT2012B4210",name:"Porcelanato Tipo Madera Husen-Natural",medida:"19 X 120",m2Caja:1.596,acabado:"MATE",precioSinIva:275.86},
+  {cat:"MADERA MATE 19 X 120",code:"TT2012C425D",name:"Porcelanato Tipo Madera Gordes-Negro",medida:"19 X 120",m2Caja:1.596,acabado:"MATE",precioSinIva:310.34},
+  {cat:"MADERA MATE 19 X 120",code:"TT2012A4270",name:"Porcelanato Tipo Madera Nice-Ivory",medida:"19 X 120",m2Caja:1.596,acabado:"MATE",precioSinIva:262.93},
+  {cat:"MADERA MATE 19 X 120",code:"TT2012A424A",name:"Porcelanato Tipo Madera Monaco-Amarillo",medida:"19 X 120",m2Caja:1.596,acabado:"MATE",precioSinIva:275.86},
+  {cat:"BRILLADO 60 X 120",code:"TC6012A0020",name:"Porcelanato Grecia",medida:"60 X 120",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:327.59},
+  {cat:"BRILLADO 60 X 120",code:"TC6012A0510",name:"Porcelanato Dozza Elite",medida:"60 X 120",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:327.59},
+  {cat:"BRILLADO 60 X 120",code:"TC6012A0980",name:"Porcelanato Nevado",medida:"60 X 120",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:327.59},
+  {cat:"BRILLADO 60 X 120",code:"TC6012B9990",name:"Porcelanato Nazas",medida:"60 X 120",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:340.52},
+  {cat:"BRILLADO 60 X 120",code:"TC6012A0140",name:"Porcelanato Carrara Gold",medida:"60 X 120",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:327.59},
+  {cat:"BRILLADO 60 X 120",code:"TC6012A0550",name:"Porcelanato Bellagio",medida:"60 X 120",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:327.59},
+  {cat:"BRILLADO 60 X 120",code:"TC6012A0620",name:"Porcelanato Fornalu TX",medida:"60 X 120",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:327.59},
+  {cat:"BRILLADO 60 X 120",code:"TC6012A0280",name:"Porcelanato Oslo",medida:"60 X 120",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:327.59},
+  {cat:"BRILLADO 60 X 120",code:"TC6012A0320",name:"Porcelanato Asleth",medida:"60 X 120",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:327.59},
+  {cat:"BRILLADO 60 X 120",code:"TC6012A0000",name:"Porcelanato Topia",medida:"60 X 120",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:327.59},
+  {cat:"BRILLADO 60 X 120",code:"TC6012A0480",name:"Porcelanato Arcadia",medida:"60 X 120",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:327.59},
+  {cat:"BRILLADO 60 X 120",code:"TC6012A0660",name:"Porcelanato Orizaba",medida:"60 X 120",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:327.59},
+  {cat:"BRILLADO 60 X 120",code:"TC6012A0580",name:"Porcelanato Positano",medida:"60 X 120",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:327.59},
+  {cat:"BRILLADO 60 X 60",code:"TC6060A0140",name:"Porcelanato Carrara Gold",medida:"60 X 60",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:306.03},
+  {cat:"BRILLADO 60 X 60",code:"TC6060A0020",name:"Porcelanato Grecia",medida:"60 X 60",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:306.03},
+  {cat:"BRILLADO 60 X 60",code:"TC6060A0980",name:"Porcelanato Nevado",medida:"60 X 60",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:306.03},
+  {cat:"BRILLADO 60 X 60",code:"TC6060B9990",name:"Porcelanato Nazas",medida:"60 X 60",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:318.97},
+  {cat:"BRILLADO 60 X 60",code:"TC6060A0550",name:"Porcelanato Bellagio",medida:"60 X 60",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:306.03},
+  {cat:"BRILLADO 60 X 60",code:"TC6060A0320",name:"Porcelanato Asleth",medida:"60 X 60",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:306.03},
+  {cat:"BRILLADO 60 X 60",code:"TC6060A0700",name:"Porcelanato Pori Beige",medida:"60 X 60",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:306.03},
+  {cat:"BRILLADO 60 X 60",code:"TC6060A0960",name:"Porcelanato Statuario Blanco",medida:"60 X 60",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:306.03},
+  {cat:"BRILLADO 60 X 60",code:"TC6060A0510",name:"Porcelanato Dozza Elite",medida:"60 X 60",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:306.03},
+  {cat:"BRILLADO 60 X 60",code:"TC6060A0701",name:"Porcelanato Pori Gris",medida:"60 X 60",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:306.03},
+  {cat:"BRILLADO 60 X 60",code:"TC6060A0990",name:"Porcelanato Lille Gris",medida:"60 X 60",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:306.03},
+  {cat:"BRILLADO 60 X 60",code:"TC6060A0451",name:"Porcelanato Bulgaria Gris",medida:"60 X 60",m2Caja:1.44,acabado:"BRILLADO",precioSinIva:306.03},
+  {cat:"MATE 30 X 60",code:"UM3060A0240",name:"Porcelanato Lille Gris Claro",medida:"30 x 60",m2Caja:1.44,acabado:"MATE",precioSinIva:237.07},
+  {cat:"MATE 30 X 60",code:"UP3060A0010",name:"Porcelanato Solfatara Sandy",medida:"30 x 60",m2Caja:1.44,acabado:"MATE",precioSinIva:237.07},
+  {cat:"MATE 30 X 60",code:"TM3060A0040",name:"Porcelanato Carso Gris Claro",medida:"30 x 60",m2Caja:1.44,acabado:"MATE",precioSinIva:237.07},
+  {cat:"MATE 60 X 60",code:"TM6060A0220",name:"Porcelanato Camus Bianco",medida:"60 X 60",m2Caja:1.44,acabado:"MATE",precioSinIva:237.07},
+  {cat:"MATE 60 X 60",code:"NM6060A0010",name:"Porcelanato Carrara Bianco",medida:"60 X 60",m2Caja:1.44,acabado:"MATE",precioSinIva:237.07},
+  {cat:"MATE 60 X 60",code:"TM6060A0160",name:"Porcelanato Statuario",medida:"60 X 60",m2Caja:1.44,acabado:"MATE",precioSinIva:237.07},
+  {cat:"MATE 60 X 60",code:"NM606010020",name:"Porcelanato Carrara Gold",medida:"60 X 60",m2Caja:1.44,acabado:"MATE",precioSinIva:237.07},
+  {cat:"MATE 60 X 60",code:"TM6060A0130",name:"Porcelanato Apulia Beige",medida:"60 X 60",m2Caja:1.44,acabado:"MATE",precioSinIva:237.07},
+  {cat:"MATE 60 X 60",code:"NM6060B0111",name:"Porcelanato Riga Gris Obscuro",medida:"60 X 60",m2Caja:1.44,acabado:"MATE",precioSinIva:250.00},
+  {cat:"MATE 60 X 60",code:"NM6060A0140",name:"Porcelanato Poland Beige",medida:"60 X 60",m2Caja:1.44,acabado:"MATE",precioSinIva:237.07},
+  {cat:"MATE 60 X 60",code:"NM6060B0052",name:"Porcelanato Alfa Gris Obscuro",medida:"60 X 60",m2Caja:1.44,acabado:"MATE",precioSinIva:250.00},
+  {cat:"MATE 60 X 60",code:"NM6060B0061",name:"Porcelanato Mustagh Marmol",medida:"60 X 60",m2Caja:1.44,acabado:"MATE",precioSinIva:250.00},
+  {cat:"MATE 60 X 60",code:"NM6060A0051",name:"Porcelanato Alfa Gris",medida:"60 X 60",m2Caja:1.44,acabado:"MATE",precioSinIva:237.07},
+  {cat:"MATE 60 X 120",code:"TM6012A0020",name:"Porcelanato Carrara Gold",medida:"60 X 120",m2Caja:1.44,acabado:"MATE",precioSinIva:267.25},
+  {cat:"MATE 60 X 120",code:"TP6012A0200",name:"Porcelanato Arcadia Beige",medida:"60 X 120",m2Caja:1.44,acabado:"MATE",precioSinIva:267.25},
+  {cat:"MATE 60 X 120",code:"UP6012B0034",name:"Porcelanato Amiata Gris Obscuro",medida:"60 X 120",m2Caja:1.44,acabado:"MATE",precioSinIva:280.18},
+  {cat:"MATE 60 X 120",code:"UP6012A0202",name:"Porcelanato Arcadia Gris Medio",medida:"60 X 120",m2Caja:1.44,acabado:"MATE",precioSinIva:267.25},
+  {cat:"MATE 60 X 120",code:"TP6012A0131",name:"Porcelanato Salerno Sandy",medida:"60 X 120",m2Caja:1.44,acabado:"MATE",precioSinIva:267.25},
+  {cat:"MATE 60 X 120",code:"UP6012A0080",name:"Porcelanato Marquis Ice",medida:"60 X 120",m2Caja:1.44,acabado:"MATE",precioSinIva:267.25},
+  {cat:"MATE 60 X 120",code:"TP6012A0082",name:"Porcelanato Marquis Gris",medida:"60 X 120",m2Caja:1.44,acabado:"MATE",precioSinIva:267.25},
+  {cat:"MATE 60 X 120",code:"TP6012A0210",name:"Porcelanato Statuario Elisio",medida:"60 X 120",m2Caja:1.44,acabado:"MATE",precioSinIva:267.25},
+  {cat:"HIGH GLOSS 60 X 120",code:"TW6012C0111",name:"Porcelanato Sara Black",medida:"60 X 120",m2Caja:1.44,acabado:"HIGH GLOSS",precioSinIva:387.93},
+  {cat:"HIGH GLOSS 60 X 120",code:"TW6012C0650",name:"Porcelanato Laurent Gold",medida:"60 X 120",m2Caja:1.44,acabado:"HIGH GLOSS",precioSinIva:387.93},
+  {cat:"HIGH GLOSS 60 X 120",code:"TW6012C0000",name:"Porcelanato Pure Black",medida:"60 X 120",m2Caja:1.44,acabado:"HIGH GLOSS",precioSinIva:387.93},
+  {cat:"HIGH GLOSS 60 X 60",code:"TW6060C0730",name:"Porcelanato Harlem",medida:"60 X 60",m2Caja:1.44,acabado:"HIGH GLOSS",precioSinIva:366.38},
+  {cat:"GRANILLADO 60 X 120",code:"TX6012A4112",name:"Porcelanato Petra Gris Claro",medida:"60 X 120",m2Caja:1.44,acabado:"GRANILLADO",precioSinIva:284.48},
+  {cat:"GRANILLADO 60 X 120",code:"TX6012C4114",name:"Porcelanato Petra Gris Oscuro",medida:"60 X 120",m2Caja:1.44,acabado:"GRANILLADO",precioSinIva:318.97},
+  {cat:"GRANILLADO 60 X 120",code:"TX6012A414A",name:"Porcelanato Darello Ivory",medida:"60 X 120",m2Caja:1.44,acabado:"GRANILLADO",precioSinIva:301.72},
+  {cat:"GRANILLADO 60 X 120",code:"TX6012B417B",name:"Porcelanato Lunara Amarillo Claro",medida:"60 X 120",m2Caja:1.44,acabado:"GRANILLADO",precioSinIva:318.97},
+  {cat:"GRANILLADO 60 X 120",code:"TX6012C417C",name:"Porcelanato Lunara Natural",medida:"60 X 120",m2Caja:1.44,acabado:"GRANILLADO",precioSinIva:336.21},
+];
+
+let pct=0,sign='desc',viewMode='grid',quoteItems={},productImages={},activePreset=null;
+
+function fmt(n){return '$'+Number(n).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function adjPrice(b){const p=pct||0;return sign==='desc'?b*(1-p/100):b*(1+p/100);}
+function cajaCost(p){return adjPrice(p.precioSinIva)*p.m2Caja;}
+function tagClass(a){const m=a.toUpperCase();if(m.includes('BRILLADO'))return 't-bri';if(m.includes('HIGH GLOSS'))return 't-hig';if(m.includes('GRANILLADO'))return 't-gra';if(m.includes('MADERA'))return 't-mad';return 't-mat';}
+
+function updateBadge(){
+  const b=document.getElementById('adjBadge'),p=pct||0;
+  if(p===0){b.textContent='Sin ajuste (precio base)';b.className='adj-pill desc';return;}
+  b.textContent=sign==='desc'?`Descuento ${p}%`:`Aumento ${p}%`;
+  b.className='adj-pill '+(sign==='desc'?'desc':'aum');
+}
+function setSign(s){sign=s;document.getElementById('btn-desc').className=s==='desc'?'a-desc':'';document.getElementById('btn-aum').className=s==='aum'?'a-aum':'';clearP();updateBadge();renderCatalog();}
+function applyPreset(p,s,btn){pct=p;sign=s;document.getElementById('pctInput').value=p;document.getElementById('btn-desc').className=s==='desc'?'a-desc':'';document.getElementById('btn-aum').className=s==='aum'?'a-aum':'';if(activePreset)activePreset.classList.remove('active');btn.classList.add('active');activePreset=btn;updateBadge();renderCatalog();}
+function applyManual(){pct=parseFloat(document.getElementById('pctInput').value)||0;clearP();updateBadge();renderCatalog();}
+function clearP(){if(activePreset){activePreset.classList.remove('active');activePreset=null;}}
+function setView(v){viewMode=v;document.getElementById('tab-grid').classList.toggle('active',v==='grid');document.getElementById('tab-list').classList.toggle('active',v==='list');renderCatalog();}
+function getFiltered(){const q=document.getElementById('searchInput').value.toLowerCase(),cat=document.getElementById('catFilter').value;return PRODUCTS.filter(p=>(p.name.toLowerCase().includes(q)||p.code.toLowerCase().includes(q))&&(!cat||p.cat===cat));}
+
+function adjLabel(p){const v=pct||0;if(v===0)return`<span style="color:#185FA5;font-size:12px;font-weight:600">${fmt(p.precioSinIva)}/m²</span>`;const ap=adjPrice(p.precioSinIva);const col=sign==='desc'?'color:#0F6E56':'color:#BA7517';const arr=sign==='desc'?'▼':'▲';return`<span style="color:#aaa;font-size:10px;text-decoration:line-through">${fmt(p.precioSinIva)}</span> <span style="${col};font-size:12px;font-weight:600">${arr} ${fmt(ap)}/m²</span>`;}
+
+function renderCatalog(){viewMode==='grid'?renderGrid():renderList();renderQuote();}
+
+function renderGrid(){
+  const list=getFiltered(),c=document.getElementById('catalogContainer');
+  if(!list.length){c.innerHTML='<div class="empty">Sin resultados</div>';return;}
+  c.innerHTML=`<div class="prod-grid">${list.map(p=>{
+    const sel=quoteItems[p.code]?'sel':'',img=productImages[p.code];
+    const dot=sel?`<div class="sel-dot"><svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg></div>`:'';
+    const saved=img?`<div class="img-ok">foto</div>`:'';
+    const thumb=img?`<img src="${img}" alt="${p.name}"/>`:`<div class="t-label">${p.medida}<br><span style="opacity:.6">${p.acabado}</span></div>`;
+    return`<div class="prod-card ${sel}" onclick="toggle('${p.code}')">
+      <div class="prod-thumb">${thumb}${dot}${saved}
+        <button class="up-btn" onclick="event.stopPropagation();upImg('${p.code}')">${img?'cambiar':'+ foto'}</button>
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">${p.name}</div>
+        <div class="prod-code">${p.code}</div>
+        <div class="prod-price">${adjLabel(p)}</div>
+        <div class="prod-caja">Caja: <strong style="color:#BA7517">${fmt(cajaCost(p))}</strong></div>
+        <span class="prod-tag ${tagClass(p.acabado)}">${p.acabado}</span>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderList(){
+  const list=getFiltered(),c=document.getElementById('catalogContainer');
+  if(!list.length){c.innerHTML='<div class="empty">Sin resultados</div>';return;}
+  const byCat={};list.forEach(p=>{if(!byCat[p.cat])byCat[p.cat]=[];byCat[p.cat].push(p);});
+  c.innerHTML=`<div class="list-view">${Object.entries(byCat).map(([cat,prods])=>`
+    <div class="lcat">${cat}</div>
+    ${prods.map(p=>{
+      const sel=quoteItems[p.code],img=productImages[p.code];
+      const thumb=img?`<img src="${img}" alt="${p.name}"/>`:`<div class="l-thumb-lbl">${p.medida}</div>`;
+      const chk=sel?`<div class="l-chk"><svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg></div>`:'';
+      const ap=adjPrice(p.precioSinIva),v=pct||0;
+      const adjEl=v===0?`<div class="l-price">${fmt(p.precioSinIva)}/m²</div>`
+        :`<div style="font-size:10px;color:#aaa;text-decoration:line-through">${fmt(p.precioSinIva)}/m²</div>
+          <div class="l-adj" style="${sign==='desc'?'color:#0F6E56':'color:#BA7517'}">${sign==='desc'?'▼':'▲'} ${fmt(ap)}/m²</div>`;
+      return`<div class="lrow ${sel?'sel':''}" onclick="toggle('${p.code}')">
+        ${chk}
+        <div class="l-thumb">${thumb}</div>
+        <div class="l-info">
+          <div class="l-name">${p.name}</div>
+          <div class="l-meta">${p.code} · ${p.medida} · <span class="prod-tag ${tagClass(p.acabado)}" style="vertical-align:middle">${p.acabado}</span></div>
+        </div>
+        <div class="l-prices">${adjEl}<div class="l-caja">Caja ${fmt(cajaCost(p))}</div></div>
+        <button class="l-upbtn" onclick="event.stopPropagation();upImg('${p.code}')">${img?'cambiar':'+ foto'}</button>
+      </div>`;
+    }).join('')}
+  `).join('')}</div>`;
+}
+
+function saveImg(code,data){try{localStorage.setItem('img:'+code,data);}catch(e){}}
+function loadImgs(){PRODUCTS.forEach(p=>{try{const d=localStorage.getItem('img:'+p.code);if(d)productImages[p.code]=d;}catch(e){}});}
+
+function upImg(code){
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      let data=ev.target.result;
+      // Compress for mobile storage
+      const img=new Image();
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        const max=400;
+        let w=img.width,h=img.height;
+        if(w>max){h=h*max/w;w=max;}
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        data=canvas.toDataURL('image/jpeg',0.7);
+        productImages[code]=data;
+        saveImg(code,data);
+        renderCatalog();
+      };
+      img.src=data;
+    };
+    r.readAsDataURL(f);
+  };inp.click();
+}
+
+function toggle(code){
+  if(quoteItems[code])delete quoteItems[code];
+  else{const p=PRODUCTS.find(x=>x.code===code);quoteItems[code]={product:p,metros:0,cajas:0,manual:false};}
+  renderCatalog();
+}
+
+function renderQuote(){
+  const keys=Object.keys(quoteItems);
+  document.getElementById('itemCount').textContent=keys.length;
+  const wrap=document.getElementById('quoteTableWrap'),tot=document.getElementById('totalsGrid');
+  if(!keys.length){wrap.innerHTML='<div class="empty">Selecciona productos del catálogo para comenzar</div>';tot.style.display='none';return;}
+  tot.style.display='grid';
+  let rows='',totalSin=0;
+  const v=pct||0,adjH=v===0?'Precio s/IVA':sign==='desc'?`-${v}% s/IVA`:`+${v}% s/IVA`;
+  keys.forEach(code=>{
+    const it=quoteItems[code],p=it.product;
+    const ap=adjPrice(p.precioSinIva),cc=cajaCost(p);
+    const cCalc=it.metros>0?Math.ceil(it.metros/p.m2Caja):0;
+    const cajas=it.manual?it.cajas:cCalc;
+    const m2=cajas*p.m2Caja,sub=m2*ap;
+    totalSin+=sub;
+    const adjCell=v===0?`<td class="p-green">${fmt(ap)}</td>`
+      :`<td><span style="font-size:10px;color:#aaa;text-decoration:line-through">${fmt(p.precioSinIva)}</span><br><span class="${sign==='desc'?'p-green':'p-amber'}">${sign==='desc'?'▼':'▲'} ${fmt(ap)}</span></td>`;
+    rows+=`<tr>
+      <td><div style="font-size:13px;font-weight:600;margin-bottom:2px">${p.name}</div><div style="font-size:11px;color:#888">${p.code} · ${p.medida}</div></td>
+      ${adjCell}
+      <td class="p-caja">${fmt(cc)}</td>
+      <td><input type="number" min="0" step="0.5" value="${it.metros||''}" placeholder="0" onchange="setM('${code}',this.value)" /></td>
+      <td><input type="number" min="0" step="1" value="${cajas||''}" placeholder="0" onchange="setC('${code}',this.value)" /></td>
+      <td style="font-size:13px;color:#666">${m2>0?m2.toFixed(2)+' m²':'—'}</td>
+      <td style="font-weight:700">${sub>0?fmt(sub):'—'}</td>
+      <td><button class="rm" onclick="toggle('${code}')">✕</button></td>
+    </tr>`;
+  });
+  const iva=totalSin*0.16;
+  wrap.innerHTML=`<div class="q-wrap"><table class="qt"><thead><tr>
+    <th>Producto</th><th>${adjH}</th><th>Costo/caja</th><th>Metros</th><th>Cajas</th><th>M² reales</th><th>Subtotal s/IVA</th><th></th>
+  </tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('totalNoIva').textContent=fmt(totalSin);
+  document.getElementById('totalIva').textContent=fmt(iva);
+  document.getElementById('totalConIva').textContent=fmt(totalSin+iva);
+}
+
+function setM(code,val){quoteItems[code].metros=parseFloat(val)||0;quoteItems[code].manual=false;quoteItems[code].cajas=0;renderQuote();}
+function setC(code,val){quoteItems[code].cajas=parseInt(val)||0;quoteItems[code].manual=true;renderQuote();}
+function clearQuote(){quoteItems={};renderCatalog();}
+
+function generatePDF(){
+  const keys=Object.keys(quoteItems);
+  if(!keys.length){alert('Agrega productos primero.');return;}
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,ml=14,cw=W-28;
+  const client=document.getElementById('clientName').value||'—';
+  const project=document.getElementById('clientProject').value||'—';
+  const seller=document.getElementById('vendedor').value||'—';
+  const dateVal=document.getElementById('quoteDate').value;
+  const dateStr=dateVal?new Date(dateVal+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'}):new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+
+  doc.setFillColor(255,255,255);doc.rect(0,0,W,28,'F');
+  doc.setDrawColor(220,220,220);doc.line(0,28,W,28);
+  doc.setTextColor(30,30,30);doc.setFontSize(18);doc.setFont(undefined,'bold');
+
+  // Logo en PDF
+  if(companyLogo){
+    try{
+      const logoImg=new Image();logoImg.src=companyLogo;
+      const maxLogoW=36,maxLogoH=18;
+      const ratio=Math.min(maxLogoW/logoImg.width,maxLogoH/logoImg.height,1);
+      const lw=Math.round(logoImg.width*ratio),lh=Math.round(logoImg.height*ratio);
+      const lx=W-ml-lw,ly=5+(maxLogoH-lh)/2;
+      doc.addImage(companyLogo,'PNG',lx,ly,lw,lh);
+    }catch(e){}
+  } else {
+    doc.setFontSize(10);doc.setFont(undefined,'bold');doc.setTextColor(60,60,60);doc.text('COTIZACIÓN',W-ml,13,{align:'right'});
+    doc.setFontSize(8);doc.setFont(undefined,'normal');doc.setTextColor(120,120,120);doc.text(dateStr,W-ml,20,{align:'right'});
+  }
+
+  doc.setTextColor(30,30,30);doc.setFontSize(18);doc.setFont(undefined,'bold');
+  doc.text(EMPRESA,ml,13);
+  doc.setFontSize(9);doc.setFont(undefined,'normal');doc.setTextColor(120,120,120);
+  doc.text('Lista de Precios 2026 — Porcelanatos',ml,20);
+  if(!companyLogo){/* date/title already added above */}
+
+  let y=36;
+  doc.setFillColor(236,236,236);doc.rect(ml,y-5,cw,22,'F');doc.setDrawColor(200,200,200);doc.rect(ml,y-5,cw,22,'S');
+  doc.setTextColor(100,100,100);doc.setFontSize(7.5);doc.setFont(undefined,'bold');
+  doc.text('CLIENTE',ml+3,y);doc.text('PROYECTO',ml+3,y+7);doc.text('VENDEDOR',ml+3,y+14);
+  doc.setFont(undefined,'normal');doc.setTextColor(30,30,30);doc.setFontSize(8.5);
+  doc.text(client,ml+28,y);doc.text(project,ml+28,y+7);doc.text(seller,ml+28,y+14);
+  y+=24;
+
+  const v=pct||0;
+  const adjTxt=v===0?'Sin ajuste':sign==='desc'?`Descuento ${v}% s/IVA`:`Aumento ${v}% s/IVA`;
+  doc.setFontSize(8);doc.setFont(undefined,'bold');doc.setTextColor(60,60,60);
+  doc.text('Ajuste de precio:',ml,y);doc.setFont(undefined,'normal');doc.text(adjTxt,ml+32,y);y+=8;
+
+  doc.setFillColor(50,50,50);doc.rect(ml,y,cw,8,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(7);doc.setFont(undefined,'bold');
+  const adjH=v===0?'Precio s/IVA':sign==='desc'?`-${v}%/m²`:`+${v}%/m²`;
+  [{t:'Producto',x:ml+2},{t:'Medida',x:ml+55},{t:adjH,x:ml+74},{t:'Lista s/IVA',x:ml+99},{t:'Costo/caja',x:ml+122},{t:'Metros',x:ml+145},{t:'Cajas',x:ml+160},{t:'Subtotal s/IVA',x:ml+173}]
+  .forEach(c=>doc.text(c.t,c.x,y+5.2));
+  y+=8;
+
+  doc.setTextColor(30,30,30);doc.setFontSize(8);doc.setFont(undefined,'normal');
+  let totalSin=0,fill=false;
+  keys.forEach(code=>{
+    const it=quoteItems[code],p=it.product;
+    const ap=adjPrice(p.precioSinIva),cc=cajaCost(p);
+    const cCalc=it.metros>0?Math.ceil(it.metros/p.m2Caja):0;
+    const cajas=it.manual?it.cajas:cCalc;
+    const m2=cajas*p.m2Caja,sub=m2*ap;
+    totalSin+=sub;
+    if(fill){doc.setFillColor(236,236,236);doc.rect(ml,y,cw,10,'F');}fill=!fill;
+    const nl=doc.splitTextToSize(p.name,50);const rh=nl.length>1?12:10;
+    doc.text(nl,ml+2,y+6);doc.text(p.medida,ml+55,y+6);
+    doc.text('$'+ap.toFixed(2),ml+74,y+6);doc.text('$'+p.precioSinIva.toFixed(2),ml+99,y+6);
+    doc.text('$'+cc.toFixed(2),ml+122,y+6);
+    doc.text(it.metros>0?it.metros.toFixed(1):'—',ml+145,y+6);
+    doc.text(cajas>0?String(cajas):'—',ml+160,y+6);
+    doc.text(sub>0?'$'+sub.toFixed(2):'—',ml+173,y+6);
+    doc.setDrawColor(210,210,210);doc.line(ml,y+rh,ml+cw,y+rh);
+    y+=rh;if(y>265){doc.addPage();y=20;}
+  });
+
+  y+=6;const iva=totalSin*0.16,total=totalSin+iva;
+  doc.setFontSize(8.5);doc.setFont(undefined,'bold');doc.setTextColor(60,60,60);
+  doc.text('Subtotal sin IVA:',ml+100,y);doc.setFont(undefined,'normal');doc.text('$'+totalSin.toFixed(2),ml+148,y);
+  y+=7;doc.setFont(undefined,'bold');doc.text('IVA (16%):',ml+100,y);doc.setFont(undefined,'normal');doc.text('$'+iva.toFixed(2),ml+148,y);
+  y+=8;doc.setFillColor(50,50,50);doc.rect(ml+90,y-5,cw-90,12,'F');
+  doc.setTextColor(255,255,255);doc.setFont(undefined,'bold');doc.setFontSize(10);
+  doc.text('TOTAL CON IVA:',ml+92,y+3);doc.text('$'+total.toFixed(2),ml+148,y+3);
+  y+=16;doc.setTextColor(160,160,160);doc.setFontSize(7.5);doc.setFont(undefined,'normal');
+  doc.text('Precios en MXN sin IVA. IVA 16% incluido en total. Cotización válida 15 días. Sujeto a disponibilidad.',ml,y);
+  doc.save(`Cotizacion_${EMPRESA.replace(/\s+/g,'_')}_${client.replace(/\s+/g,'_')}.pdf`);
+}
+
+// ─── LOGO ──────────────────────────────────────────────────────────────────
+let companyLogo=null;
+
+function renderLogoZone(){
+  const zone=document.getElementById('logoZone');
+  if(companyLogo){
+    zone.innerHTML=`
+      <img id="logoImg" src="${companyLogo}" class="logo-preview" alt="Logo" />
+      <div class="logo-btns">
+        <button class="btn-logo" onclick="uploadLogo()">Cambiar logo</button>
+        <button class="btn-logo remove" onclick="removeLogo()">Quitar logo</button>
+      </div>`;
+  } else {
+    zone.innerHTML=`
+      <div class="logo-placeholder" onclick="uploadLogo()" title="Subir logo de la empresa">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21,15 16,10 5,21"/>
+        </svg>
+      </div>
+      <div class="logo-btns">
+        <button class="btn-logo" onclick="uploadLogo()">+ Subir logo</button>
+        <span style="font-size:10px;color:rgba(255,255,255,.5);text-align:center">PNG · JPG · SVG</span>
+      </div>`;
+  }
+}
+
+function uploadLogo(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        const maxW=600,maxH=200;
+        let w=img.width,h=img.height;
+        const ratio=Math.min(maxW/w,maxH/h,1);
+        w=Math.round(w*ratio);h=Math.round(h*ratio);
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        companyLogo=canvas.toDataURL('image/png',0.9);
+        try{localStorage.setItem('company:logo',companyLogo);}catch(e){}
+        renderLogoZone();
+      };
+      img.src=ev.target.result;
+    };
+    r.readAsDataURL(f);
+  };inp.click();
+}
+
+function removeLogo(){
+  companyLogo=null;
+  try{localStorage.removeItem('company:logo');}catch(e){}
+  renderLogoZone();
+}
+
+function loadLogo(){
+  try{const d=localStorage.getItem('company:logo');if(d)companyLogo=d;}catch(e){}
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+document.getElementById('quoteDate').value=new Date().toISOString().split('T')[0];
+loadLogo();
+renderLogoZone();
+loadImgs();
+renderCatalog();
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+body{font-family:Arial,sans-serif;background:#ececec;margin:0;padding:0}
+.wrap{max-width:1100px;margin:auto;padding:20px}
+.header{background:#185FA5;color:#fff;padding:20px;border-radius:12px;margin-bottom:20px}
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.prod-card{background:#fff;border-radius:10px;padding:12px;border:1px solid #ddd;cursor:pointer}
+.prod-card:hover{transform:translateY(-2px)}
+button{padding:10px 14px;border:none;border-radius:8px;background:#185FA5;color:#fff;cursor:pointer}
